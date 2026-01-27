@@ -31,7 +31,8 @@ _Some labs may also involve additional environments such as cloud instances or v
 ## Notes
 
 - All work is performed in controlled environments intended for educational purposes.
-  ![OR AM I?](assets/sideeye.jfif)
+
+![OR AM I?](assets/sideeye.jfif)
 - No real credentials or sensitive data are included in this repository (I think).
 - Screenshots and command outputs are included where they add clarity and verification.
 
