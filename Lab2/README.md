@@ -21,7 +21,7 @@ The tasks focus on DNS Reconnaissance, network scanning, firewall filtering anal
 
 ### 2.1.1 Information Gathering with DMitry
 
-[DMitry](https://github.com/jaygreig86/dmitry) us a reconnaissance tool designed to collect a wide range of information about a target domain or host. It combines multiple information-gathering techniques into a single utility.
+[DMitry](https://github.com/jaygreig86/dmitry) is a reconnaissance tool designed to collect a wide range of information about a target domain or host. It combines multiple information-gathering techniques into a single utility.
 
 DMitry can gather:
 - WHOIS information
@@ -37,9 +37,9 @@ This tool is useful in the early reconnaissance phase to quickly get an overview
 
 ### 2.1.2 DNS Zone Transfer Attempts
 
-A [DNS zone transfer (AXFR)](https://learn.microsoft.com/en-us/windows-server/networking/dns/zone-types) attempts to retrieve the full dNS zone file from an authorative name server.
+A [DNS zone transfer (AXFR)](https://learn.microsoft.com/en-us/windows-server/networking/dns/zone-types) attempts to retrieve the full DNS zone file from an authoritative name server.
 
-Zone transfer attemts were performed using the following tools:
+Zone transfer attempts were performed using the following tools:
 - `dig`
 - `nslookup`
 - `host`
@@ -50,17 +50,17 @@ dig AXFR du.se @ns1.du.se
 The zone transfer attempt was unsuccessful because the domain is protected using [DNSSEC](https://www.icann.org/resources/pages/dnssec-what-is-it-why-important-2019-03-05-en)
 and properly configured to restrict zone transfers.
 
-### 2.1.3 Identifying Authorative DNS Servers Without DMitry
-Authorative DNS servers can be identified using standard DNS utilities by querying Name Server (NS) records.
+### 2.1.3 Identifying authoritative DNS Servers Without DMitry
+authoritative DNS servers can be identified using standard DNS utilities by querying Name Server (NS) records.
 
 Example Command:
 ```
 dig du.se NS
 ```
 
-The returned NS records reveal the primary and secondary DNS servers to the domain. These servers can then be tested individually for misconfigs such as _open_ zone transfers.
+The returned NS records reveal the primary and secondary DNS servers to the domain. These servers can then be tested individually for misconfigurations such as _open_ zone transfers.
 
-### 2.1.4 Reverse DNS Brute Froce Enumeration
+### 2.1.4 Reverse DNS Brute Force Enumeration
 [Reverse DNS Brute force](https://www.geeksforgeeks.org/ethical-hacking/what-is-dns-enumeration/)
 is a technique used to identify hostnames by resolving IP addresses back to DNS names when zone transfers are unavailable.
 
@@ -128,10 +128,10 @@ nmap -O -A scanme.nmap.org
 This enables OS detection, version detection, script scanning and traceroute.
 
 ### OS and Services Conclusion
-Based on the scan results, the target appears to be a Linux-based system running commong network services. Open Ports and service banners provide insight into potential attack surfaces.
+Based on the scan results, the target appears to be a Linux-based system running common network services. Open Ports and service banners provide insight into potential attack surfaces.
 
 ## 2.3 IP Filtering
-Nmap was selected for firewall and filtering analysis due to it's flexibility and support for specialized scan types, as you'll see below.
+Nmap was selected for firewall and filtering analysis due to its flexibility and support for specialized scan types, as you'll see below.
 
 The commands used:
 ```
@@ -140,10 +140,10 @@ nmap -sF scanme.nmap.org
 nmap -sN scanme.nmap.org
 nmap -sX scanme.nmap.org
 ```
-Filtered ports did not respond to probes, indicating firewall rules blocking traffic. FIN, NULL and XMAS scans was tested to observe firewall behaviour when handling unusual TCP flags.
+Filtered ports did not respond to probes, indicating firewall rules blocking traffic. FIN, NULL and XMAS scans were tested to observe firewall behaviour when handling unusual TCP flags.
 
 ## 2.4 Cracking Hashes with Rainbow Tables
-[Raibow tables](https://www.beyondidentity.com/glossary/rainbow-table-attack) were used to crack LM and NTLM hashes using [Ophcrack](https://ophcrack.sourceforge.io).
+[Rainbow Tables](https://www.beyondidentity.com/glossary/rainbow-table-attack) were used to crack LM and NTLM hashes using [Ophcrack](https://ophcrack.sourceforge.io).
 
 The hash file was in .pwdump format and was loaded into Ophcrack, which automatically separated the LM and NT hashes. The hashes were matched against the rainbow tables to recover the plaintext passwords.
 
@@ -159,7 +159,7 @@ mig:pension2010
 The difference between LM and NT hashes, LM hashes are legacy windows passwords hashes that split the password into two 7-character uppercase parts, making them highly vulnerable to rainbow table attacks. NTLM hashes are stronger and case-sensitive, using the full password, but they are still vulnearble to rainbow tables if unsalted.
 
 ## 2.5 Cracking Hashes with Parallel Computing (Hashcat)
-Hashcas was used to perform accelerated password recovery using mask-based and brute-force attacks.
+Hashcat was used to perform accelerated password recovery using mask-based and brute-force attacks.
 
 Hash identification was performed using:
 ```
