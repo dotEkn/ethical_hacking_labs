@@ -41,5 +41,3 @@ _Safe environments and intended for educational purposes..._
 
 ## Author
 Yours Truly ❤️
-
-*(This repository is part of coursework and learning excercises)*
