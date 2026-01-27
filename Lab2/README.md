@@ -179,6 +179,7 @@ For the second hash, it was a bit more difficult and I had to break down the tas
 - After that, all lowercase letters.
 - We also have a special character `-` or `_`
 - And it ends with a 4-digit year, 2000 and current year (2026).
+This information allowed the keyspace to be drastically reduced, making a mask-based brute force feasible.
 
 Another clue was given _the hashing is a bit outdated - and the password is not itself random_.
 
