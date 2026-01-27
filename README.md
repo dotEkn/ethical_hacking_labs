@@ -1,6 +1,6 @@
 # Ethical Hacking Labs
 
-This repository contains lab reports for the Ethical Hacking course, created by yours truly.
+This repository contains lab reports for the Ethical Hacking course.
 
 ## Labs
 - [Lab 1 - Linux Fundamentals & Networking](Lab1/README.md)
