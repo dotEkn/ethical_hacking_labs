@@ -189,3 +189,4 @@ selectLang=/../etc/passwd
 ```
 **Result:**
 The contents of `/etc/passwd` were successfully discloseed, confirming Location File Inclusion.
+![Output from LFI](screenshots/LFI_etc_pwd.png)
