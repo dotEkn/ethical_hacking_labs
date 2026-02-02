@@ -11,7 +11,7 @@ Each lab is contained in its own folder with a dedicated README:
 
 - [Lab 1 - Linux Fundamentals & Networking](Lab1/README.md)
 - [Lab 2 - Reconnaissance & Scanning](Lab2/README.md)
-- Lab 3 - (Coming soon)
+- [Lab 3 - Web Application Attacks](Lab3/README.md)
 - Lab 4 - (Coming soon)
 - Lab 5 - (Coming soon)
 - Project Work (Either in this repo or the next)
