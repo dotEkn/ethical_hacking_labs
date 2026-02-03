@@ -189,7 +189,7 @@ hashcat --identify hashfile2.txt
 ```
 I tried several different rulesets (given by the `man hashcat`). This still gave me nothing and I couldn't crack it, with the _NTLM_ hashmode.
 
-Afterwards, I read up on [NTLM](https://www.tarlogic.com/cybersecurity-glossary/ntlm-hash/) and found out that it's basically built upon MD4, which gave me this command:
+Afterwards, I read up on [NTLM](https://www.tarlogic.com/cybersecurity-glossary/ntlm-hash/) and found out that it's basically built upon MD4, which made me test with MD4 instead:
 ```
 hashcat -m 900 -O hashfile2.txt -a 3 -1 -_ -O ?u?l?l?l?l?l?l?120?d?d
 ```
