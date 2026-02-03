@@ -191,7 +191,7 @@ I tried several different rulesets (given by the `man hashcat`). This still gave
 
 Afterwards, I read up on [NTLM](https://www.tarlogic.com/cybersecurity-glossary/ntlm-hash/) and found out that it's basically built upon MD4, which gave me this command:
 ```
-hashcat -m 900 -O hashfile2.txt -a 3 ?u?l?l?l?l?l?l20?d?d
+hashcat -m 900 -O hashfile2.txt -a 3 -1 -_ -O ?u?l?l?l?l?l?l?120?d?d
 ```
 And with that, I cracked it!
 ```
