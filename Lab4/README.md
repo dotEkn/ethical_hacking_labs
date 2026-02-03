@@ -39,3 +39,12 @@ The `SECRET_PATTERN` that successfully solves Stack One is therefore `64 bytes o
 ./stack_one $(python -c 'print("A"*64 + "bYlI")')
 ```
 This overwrites the `changeme` with the correct value and triggers the success message.
+
+# Windows Task
+
+### Attack 1 – Empty credentials bypass
+
+**Command used (Windows PowerShell):**
+```bash
+.\buffertest2022.exe db.txt "" ""
+```
