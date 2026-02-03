@@ -1,5 +1,7 @@
 # Lab 4 - Buffer-Overflow Attacks and Exploit Frameworks
 
+# 4.1 Buffer Exploits (Bad Programming)
+---
 ## Buffer Vulnerabilites in C/C++
 
 Buffer overflow vulnerabilities are among the oldest and most well-known security flaws in computer systems. 
@@ -41,10 +43,146 @@ The `SECRET_PATTERN` that successfully solves Stack One is therefore `64 bytes o
 This overwrites the `changeme` with the correct value and triggers the success message.
 
 # Windows Task
+## Overview
+In this task, a vulnerable authentication server is analyzed and attacked.\
+The server checks a username and passwords against a database file (`db.txt`) using a C++ program (`PasswdCheck.cpp`).
 
-### Attack 1 – Empty credentials bypass
+## Program Usage
+```bash
+.\buffertest2022.exe db.txt <username> <password>
+```
+**Example:**
+```C++
+.\buffertest2022.exe db.txt test testsson 
+```
 
-**Command used (Windows PowerShell):**
+## Attack 1 - Empty Credentials Bypass
+```C++
 ```bash
 .\buffertest2022.exe db.txt "" ""
 ```
+**Result:**
+```nginx
+Access granted for user: 
+```
+After checking why this works, I had to look at the .cpp file, and the program concatenates the username and password into a single string such as:
+```cpp
+sprintf(string, "%s %s", argv[2], argv[3]):
+```
+When both username and password are empty, the resulting string becomes a single space `" "`.\
+The authentication is performed using the function:
+```cpp
+if (strstr(buffer, string))
+    ok = 0;
+```
+Since database entries are formatted like:
+```
+admin admin
+```
+and contains a space between username and password, the substring `" "` is found in nearly every database line. This causes the program to incorrectly accept empty credentials and grant access.
+### Vulnerability Type
+- Logic flaw
+- Missing input validation
+- Unsafe use of substring matching for authentication
+
+## Attack 2 - Partial Password / Substring Match Bypass
+
+To identify why it was possible to log in with only a partial password, the program was debugged in **Visual Studio** using breakpoints and variable inspection.
+
+In Visual Studio, this was configured via:
+- Project Properties -> Configuration Properties -> Debugging
+  - Command arguments: `db.txt kalle kalle`
+  - Working Directory: set to the folder containing `db.txt`
+
+**Two main breakpoints** was used:
+1. After username/password concatenated
+   - Breakpoint placed directly after:
+     ```cpp
+     sprintf(string, "%s %s", argv[2], argv[3]);
+     ```
+     This allowed inspection of the constructed string (`string`), confirming it became:
+     ```
+     "kalle kalle"
+2. Inside the Database read/compare loop
+   - Breakpoint placed at the authentication check:
+     ```cpp
+     if (strstr(buffer, string))
+        ok = 0;
+      ```
+With the comparison made, we also saw what the authentication was using to compare the string to, which was `admin admin`.
+
+**Command used**
+```
+buffertest2022.exe db.txt adm a
+```
+**Result**
+```
+Access granted to user: admin
+```
+### Why this works
+The authentication logic checks whether the user-supplied string is a **substring** of a database entry:
+```cpp
+if (strstr(buffer, string))
+    ok = 0;
+```
+With the input:
+```
+username = "admin"
+password = "a"
+```
+The constructed string becomes:
+```
+"admin a"
+```
+This string is a substring of the database entry:
+```
+"admin admin"
+```
+Because the program only checks for substring presence instead of an exact match, a **partial password** is sufficient to authenticate successfully.
+### Vulnerability Type
+- Logic flaw
+- Improper string comparison
+- Authentication bypass using partial credentials
+
+# Additional Security Risks (Identified via Code Review)
+## Unsafe Buffer Handling
+
+```cpp
+#define CH_BUFF_SIZE 16
+char string[CH_BUFF_SIZE];
+
+sprintf(string, "%s %s", argv[2], argv[3]);
+```
+- `sprintf` performs no bounds checking
+- The is only 16 bytes long
+- Overlong input can overwrite adjacent memory, including the authentication state variable `ok`
+This introduces **buffer overflow risk** and potential memory corruption.
+
+## Fixes implemented
+The following changes were made to secure the application.
+1. **Reject Empty Credentials**
+```cpp
+if (argv[2][0] == '\0' || argv[3][0] == '\0') {
+    ok = 1;
+    return;
+}
+```
+Prevents authentication with empty username or password.
+2. **Replace Unsafe `sprintf` with Bounded Formatting.
+```cpp
+int n = snprintf(string, CH_BUFF_SIZE, "%s %s", argv[2], argv[3]);
+if (n < 0 || n >= CH_BUFF_SIZE) {
+    ok = 1;
+    return;
+}
+```
+Prevents buffer overflow and rejects trunctuated input.
+
+3. **Exact String Comparison**
+```cpp
+buffer[strcspn(buffer, "\r\n")] = '\0';
+if (strcmp(buffer, string) == 0) {
+    ok = 0;
+}
+```
+Ensures that authentication only succeeds when the **full username and password match exactly**.
