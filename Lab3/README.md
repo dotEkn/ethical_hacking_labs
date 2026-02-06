@@ -287,3 +287,8 @@ root:$6$UFCkQvbe$m1tMWI2YnFNAYk8DQGK3bGy9/zSkbhlVlmiyYU.g0gu0KzxZ7SOvmjQt/7Ua2hd
 - Apply strict file permissions
 - Enforce strong password policies
 - Restrict sudo access.
+
+---
+## Feedback
+I really enjoyed the progress between the **DVWA**, and that we later applied it towards **WebApplication**, it felt like a smooth transition and it really had me test what I learned from, to implement it in a *real scenario*.\
+The lab in itself was very well-guided and many tools had explanation and clarification.
